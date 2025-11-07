@@ -125,24 +125,9 @@ namespace Rapid_Reporter.Forms
             {
                 Close();
             }
-            string[] msg = {
-                "Are you sure you want to create a html file and close the app?\n\n",
-                "Yes:\tCreate a html file and close the app.\n",
-                "No:\tClose the app without creating a html file.\n",
-                "Cancel:\tDon't close the app."
-            };
-            MessageBoxResult result = System.Windows.MessageBox.Show(String.Join("", msg), "User Confirmation", MessageBoxButton.YesNoCancel);
-            if (result == MessageBoxResult.Yes)
-            {
-                Logger.Record("[CloseButton_Click]: Closing Form (Yes button was clicked)...", "SMWidget", "info");
-                Close();
-            }
-            else if (result == MessageBoxResult.No)
-            {
-                Logger.Record("[CloseButton_Click]: Closing Form (No button was clicked)...", "SMWidget", "info");
-                _currentSession.createHTML = false;
-                Close();
-            }
+            // Automatically create HTML file and close the app without confirmation
+            Logger.Record("[CloseButton_Click]: Closing Form (auto-save HTML enabled)...", "SMWidget", "info");
+            Close();
         }
 
         // Initialize System Tray Icon

@@ -60,8 +60,12 @@ namespace Rapid_Reporter
         // Start Session and Close Session prepare/finalize the log file
         public void StartSession()
         {
+
             Logger.Record("[StartSession]: Session configuration starting", "Session", "info");
 
+            // Update StartingTime to current time to ensure unique folder names for each session
+            StartingTime = DateTime.Now;
+            
             // Folder name matches .html file naming: [timestamp] - [ScenarioId]
             string baseFolderName = string.Format("{0} - {1}", StartingTime.ToString("yyyyMMdd_HHmmss"), ScenarioId);
             // Append 'Bug' if ScenarioId contains 'Bug/Issue' (case-insensitive)
@@ -293,14 +297,7 @@ namespace Rapid_Reporter
                     string.Format("{0} - {1}.htm", Path.GetFileNameWithoutExtension(csvFile), ScenarioId),
                     (current, c) => current.Replace(c.ToString(CultureInfo.InvariantCulture), ""));
             var str2 = WorkingDir + str1;
-            var saveFileDialog1 = new SaveFileDialog
-            {
-                DefaultExt = "htm",
-                FileName = str1,
-                InitialDirectory = WorkingDir
-            };
-            if (saveFileDialog1.ShowDialog() == DialogResult.OK)
-                str2 = saveFileDialog1.FileName;
+            // Automatically save to the default path without showing SaveFileDialog
             return str2;
         }
 

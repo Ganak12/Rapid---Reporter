@@ -1,6 +1,6 @@
 <Window x:Class="Rapid_Reporter.Forms.SmWidget"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Height="55" MaxHeight="55" MinHeight="55" Width="705" MinWidth="600" Name="SMWidgetForm" AllowsTransparency="True" ResizeMode="CanResizeWithGrip" Topmost="True" WindowStyle="None"  MouseLeftButtonDown="SMWidget_LeftButtonDown" GotFocus="SMWidgetForm_GotFocus" Loaded="SMWidgetForm_Loaded" Icon="RapidReporter.ico" Closed="SMWidgetForm_Closed">
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Height="55" MaxHeight="55" MinHeight="55" Width="705" MinWidth="600" Name="SMWidgetForm" AllowsTransparency="True" ResizeMode="CanResizeWithGrip" Topmost="True" WindowStyle="None" WindowStartupLocation="Manual" ShowInTaskbar="True" MouseLeftButtonDown="SMWidget_LeftButtonDown" GotFocus="SMWidgetForm_GotFocus" Loaded="SMWidgetForm_Loaded" Closed="SMWidgetForm_Closed">
     <Window.ContextMenu>
         <ContextMenu Name="cm">
             <MenuItem Name="TimerMenu" Header="Time until end..." IsEnabled="False">

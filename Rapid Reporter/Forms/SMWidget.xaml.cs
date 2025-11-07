@@ -34,6 +34,9 @@ namespace Rapid_Reporter.Forms
 
         //rtf and pt note things
         public bool IsPlainTextDiagOpen;
+        
+        // System Tray Icon
+        private NotifyIcon _notifyIcon;
 
         // State Based Behaviors:
         // Session flow:
@@ -71,6 +74,10 @@ namespace Rapid_Reporter.Forms
             _ptn.Sm = this;
             TextCompositionManager.AddPreviewTextInputHandler(NoteContent, OnPreviewTextInput);
             TextCompositionManager.AddPreviewTextInputUpdateHandler(NoteContent, OnPreviewTextInputUpdate);
+            
+            // Initialize System Tray Icon
+            InitializeNotifyIcon();
+            
             Task.Run((Action)Updater.CheckVersion);
             NoteContent.Focus();
             Logger.Record("[SMWidget]: App constructor initialized and CLI executed.", "SMWidget", "info");
@@ -82,6 +89,14 @@ namespace Rapid_Reporter.Forms
             Logger.Record("[SMWidgetForm_Loaded]: Form loading to windows", "SMWidget", "info");
 
             SMWidgetForm.Title = Application.ProductName;
+            
+            // Position window at top-center of primary screen
+            var workingArea = System.Windows.Forms.Screen.PrimaryScreen.WorkingArea;
+            SMWidgetForm.Left = (workingArea.Width - SMWidgetForm.Width) / 2;
+            SMWidgetForm.Top = 20; // 20 pixels from top
+            
+            Logger.Record($"[SMWidgetForm_Loaded]: Window positioned at Left={SMWidgetForm.Left}, Top={SMWidgetForm.Top}", "SMWidget", "info");
+            
             SetWorkingDir(_currentSession.WorkingDir);
             StateMove(Session.SessionStartingStage.Tester);
 
@@ -110,30 +125,124 @@ namespace Rapid_Reporter.Forms
             {
                 Close();
             }
-            string[] msg = {
-                "Are you sure you want to create a html file and close the app?\n\n",
-                "Yes:\tCreate a html file and close the app.\n",
-                "No:\tClose the app without creating a html file.\n",
-                "Cancel:\tDon't close the app."
-            };
-            MessageBoxResult result = System.Windows.MessageBox.Show(String.Join("", msg), "User Confirmation", MessageBoxButton.YesNoCancel);
-            if (result == MessageBoxResult.Yes)
+            // Automatically create HTML file and close the app without confirmation
+            Logger.Record("[CloseButton_Click]: Closing Form (auto-save HTML enabled)...", "SMWidget", "info");
+            Close();
+        }
+
+        // Initialize System Tray Icon
+        private void InitializeNotifyIcon()
+        {
+            try
             {
-                Logger.Record("[CloseButton_Click]: Closing Form (Yes button was clicked)...", "SMWidget", "info");
-                Close();
+                _notifyIcon = new NotifyIcon
+                {
+                    Visible = true,
+                    Text = "Rapid Reporter - Session Note Taking Tool"
+                };
+
+                // Try to load icon from multiple possible locations
+                try
+                {
+                    string iconPath = null;
+                    string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+                    
+                    // Try various possible locations
+                    string[] possiblePaths = new[]
+                    {
+                        System.IO.Path.Combine(baseDir, "Forms", "RapidReporter.ico"),
+                        System.IO.Path.Combine(baseDir, "..", "..", "..", "Forms", "RapidReporter.ico"),
+                        System.IO.Path.Combine(baseDir, "RapidReporter.ico")
+                    };
+                    
+                    foreach (var path in possiblePaths)
+                    {
+                        string fullPath = System.IO.Path.GetFullPath(path);
+                        if (System.IO.File.Exists(fullPath))
+                        {
+                            iconPath = fullPath;
+                            break;
+                        }
+                    }
+                    
+                    if (iconPath != null)
+                    {
+                        _notifyIcon.Icon = new Icon(iconPath);
+                        Logger.Record($"[InitializeNotifyIcon]: Icon loaded from {iconPath}", "SMWidget", "info");
+                    }
+                    else
+                    {
+                        Logger.Record("[InitializeNotifyIcon]: Icon file not found, using default", "SMWidget", "warning");
+                    }
+                }
+                catch (Exception iconEx)
+                {
+                    Logger.Record($"[InitializeNotifyIcon]: Could not load icon: {iconEx.Message}", "SMWidget", "warning");
+                }
+
+                // Double-click to show/restore window
+                _notifyIcon.DoubleClick += (s, e) =>
+                {
+                    ShowWindow();
+                };
+
+                // Create context menu
+                var contextMenu = new ContextMenuStrip();
+                
+                var showMenuItem = new ToolStripMenuItem("Show Widget", null, (s, e) => ShowWindow());
+                var hideMenuItem = new ToolStripMenuItem("Hide Widget", null, (s, e) => HideWindow());
+                var separator = new ToolStripSeparator();
+                var aboutMenuItem = new ToolStripMenuItem("About", null, (s, e) => ShowAbout());
+                var exitMenuItem = new ToolStripMenuItem("Exit", null, (s, e) => ExitApp());
+
+                contextMenu.Items.Add(showMenuItem);
+                contextMenu.Items.Add(hideMenuItem);
+                contextMenu.Items.Add(separator);
+                contextMenu.Items.Add(aboutMenuItem);
+                contextMenu.Items.Add(exitMenuItem);
+
+                _notifyIcon.ContextMenuStrip = contextMenu;
+                
+                Logger.Record("[InitializeNotifyIcon]: System tray icon initialized", "SMWidget", "info");
             }
-            else if (result == MessageBoxResult.No)
+            catch (Exception ex)
             {
-                Logger.Record("[CloseButton_Click]: Closing Form (No button was clicked)...", "SMWidget", "info");
-                _currentSession.createHTML = false;
-                Close();
+                Logger.Record($"[InitializeNotifyIcon]: Error initializing system tray icon: {ex.Message}", "SMWidget", "error");
+                // Don't let system tray failure crash the app
             }
+        }
+
+        private void ShowWindow()
+        {
+            SMWidgetForm.Show();
+            SMWidgetForm.WindowState = WindowState.Normal;
+            SMWidgetForm.Activate();
+            NoteContent.Focus();
+        }
+
+        private void HideWindow()
+        {
+            SMWidgetForm.Hide();
+        }
+
+        private void ShowAbout()
+        {
+            var aboutForm = new AboutForm();
+            aboutForm.ShowDialog();
         }
 
         // Closing the form can't just close the window, it has to follow the finalization process
         private void SMWidgetForm_Closed(object sender, EventArgs e)
         {
             Logger.Record("[SMWidgetForm_Closed]: Exiting Application...", "SMWidget", "info");
+            
+            // Dispose system tray icon
+            if (_notifyIcon != null)
+            {
+                _notifyIcon.Visible = false;
+                _notifyIcon.Dispose();
+            }
+            
             ExitApp();
         }
         // Before closing the window, we have to close the session and the RTF note

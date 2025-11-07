@@ -1,7 +1,7 @@
 <Window x:Class="Rapid_Reporter.Forms.PlainTextNote"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    Title="Plain Text Note (text is attached to note only at the moment you press the 'Save' button)" Height="200" Name="PlainTextNoteDialog" AllowsTransparency="false" Visibility="Hidden" Icon="RapidReporter.ico" ShowInTaskbar="False" Topmost="True" IsVisibleChanged="PlainTextNoteDialog_VisibilityChanged">
+    Title="Plain Text Note (text is attached to note only at the moment you press the 'Save' button)" Height="200" Name="PlainTextNoteDialog" AllowsTransparency="false" Visibility="Hidden" ShowInTaskbar="False" Topmost="True" IsVisibleChanged="PlainTextNoteDialog_VisibilityChanged">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />

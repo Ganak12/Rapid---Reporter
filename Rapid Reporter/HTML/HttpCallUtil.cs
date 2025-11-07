@@ -1,7 +1,6 @@
 ﻿using System;
-using System.IO;
-using System.Net;
-using System.Text;
+using System.Net.Http;
+using System.Threading.Tasks;
 
 namespace Rapid_Reporter.HTML
 {
@@ -10,64 +9,60 @@ namespace Rapid_Reporter.HTML
         internal const int DefaultTimeout = 300000;
         internal const string DefaultAcceptType = "text/plain";
 
+        private static readonly HttpClient _httpClient = new HttpClient
+        {
+            Timeout = TimeSpan.FromMilliseconds(DefaultTimeout)
+        };
+
         internal static HttpResult HttpGetCall(string url)
+        {
+            // Use async method synchronously for backward compatibility
+            return HttpGetCallAsync(url).GetAwaiter().GetResult();
+        }
+
+        private static async Task<HttpResult> HttpGetCallAsync(string url)
         {
             var result = new HttpResult();
 
             try
             {
-                var httpReq = (HttpWebRequest)WebRequest.Create(url);
-                httpReq.Accept = DefaultAcceptType;
-                httpReq.Method = @"GET";
-                httpReq.Timeout = DefaultTimeout;
-                httpReq.AllowAutoRedirect = false;
-                httpReq.ContentLength = 0;
-
-                var httpResp = (HttpWebResponse)httpReq.GetResponse();
-                result.Status = httpResp.StatusDescription;
-                result.StatusCode = (int)httpResp.StatusCode;
-
-                var responseEncoding = (string.IsNullOrWhiteSpace(httpResp.CharacterSet))
-                                           ? Encoding.Default
-                                           : Encoding.GetEncoding(httpResp.CharacterSet);
-                var respStream = httpResp.GetResponseStream();
-                if (respStream == null) return result;
-                using (var sr = new StreamReader(respStream, responseEncoding))
+                using (var request = new HttpRequestMessage(HttpMethod.Get, url))
                 {
-                    result.Message = sr.ReadToEnd();
+                    request.Headers.Add("Accept", DefaultAcceptType);
+
+                    var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseContentRead);
+                    
+                    result.StatusCode = (int)response.StatusCode;
+                    result.Status = response.ReasonPhrase ?? response.StatusCode.ToString();
+
+                    if (response.Content != null)
+                    {
+                        result.Message = await response.Content.ReadAsStringAsync();
+                    }
                 }
             }
-            catch (WebException e)
+            catch (TaskCanceledException e) when (e.InnerException is TimeoutException)
             {
-                switch (e.Status)
-                {
-                    case WebExceptionStatus.Timeout:
-                    case WebExceptionStatus.SecureChannelFailure:
-                    case WebExceptionStatus.ConnectFailure:
-                        result.Status = e.Status.ToString();
-                        result.Message = e.Message;
-                        return result;
-                }
-
-                try
-                {
-                    result.Status = ((HttpWebResponse) e.Response).StatusDescription;
-                    result.StatusCode = (int) ((HttpWebResponse) e.Response).StatusCode;
-                    result.Message = e.Message;
-                }
-                catch
-                {
-                    result.Status = e.Status.ToString();
-                    result.Message = e.Message;
-                }
+                result.Status = "Timeout";
+                result.Message = "The request timed out.";
+            }
+            catch (TaskCanceledException)
+            {
+                result.Status = "Timeout";
+                result.Message = "The request timed out.";
+            }
+            catch (HttpRequestException e)
+            {
+                result.Status = "RequestException";
+                result.Message = e.Message;
             }
             catch (Exception e)
             {
+                result.Status = "Error";
                 result.Message = e.Message;
             }
+
             return result;
         }
     }
-
-
 }

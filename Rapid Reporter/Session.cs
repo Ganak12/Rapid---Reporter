@@ -68,11 +68,6 @@ namespace Rapid_Reporter
             
             // Folder name matches .html file naming: [timestamp] - [ScenarioId]
             string baseFolderName = string.Format("{0} - {1}", StartingTime.ToString("yyyyMMdd_HHmmss"), ScenarioId);
-            // Append 'Bug' if ScenarioId contains 'Bug/Issue' (case-insensitive)
-            if (!string.IsNullOrEmpty(ScenarioId) && ScenarioId.IndexOf("Bug/Issue", StringComparison.OrdinalIgnoreCase) >= 0)
-            {
-                baseFolderName += " Bug";
-            }
             string folderName = (new string(Path.GetInvalidFileNameChars()) + new string(Path.GetInvalidPathChars())).Aggregate(
                 baseFolderName,
                 (current, c) => current.Replace(c.ToString(CultureInfo.InvariantCulture), ""));
@@ -220,17 +215,16 @@ namespace Rapid_Reporter
         internal void UpdateNotes(string type, string note, string screenshot = "", string rtfNote = "")
         {
 
-            // Add "Bug" to folder name if this is a bug note
+            // Add "Bug" icon to folder if this is a bug note
             if (type == "Bug/Issue")
             {
-                AddBugToFolderName();
                 
                 // Change icon ONLY for Bug/Issue folders
                 try
                 {
                     string desktopIniPath = Path.Combine(WorkingDir, "desktop.ini");
                     File.WriteAllText(desktopIniPath,
-                        "[.ShellClassInfo]\r\nIconResource=%SystemRoot%\\System32\\SHELL32.dll,78\r\n"); // Warning icon
+                        "[.ShellClassInfo]\r\nIconResource=%SystemRoot%\\System32\\SHELL32.dll,234\r\n"); // Warning icon
                     File.SetAttributes(desktopIniPath, FileAttributes.Hidden | FileAttributes.System);
                     File.SetAttributes(WorkingDir, File.GetAttributes(WorkingDir) | FileAttributes.System);
                 }
@@ -246,29 +240,6 @@ namespace Rapid_Reporter
             Logger.Record("[UpdateNotes ss]: Note added to session log (" + screenshot + ", " + rtfNote + ")", "Session", "info");
         }
 
-        // Appends ' Bug' to the folder name, preserving ScenarioId and timestamp, if not already present
-        private void AddBugToFolderName()
-        {
-            string trimmed = WorkingDir.TrimEnd('\\');
-            string parentDir = Path.GetDirectoryName(trimmed);
-            string folderName = Path.GetFileName(trimmed);
-            // Only append ' Bug' if not already present
-            if (!folderName.EndsWith("Bug", StringComparison.OrdinalIgnoreCase))
-            {
-                string newFolderName = folderName + " Bug";
-                string newWorkingDir = Path.Combine(parentDir, newFolderName) + "\\";
-                try
-                {
-                    Directory.Move(WorkingDir, newWorkingDir);
-                    WorkingDir = newWorkingDir;
-                    _sessionFileFull = WorkingDir + _sessionFile;
-                }
-                catch (Exception ex)
-                {
-                    Logger.Record("[AddBugToFolderName]: Could not rename folder (" + ex.Message + ")", "Session", "error");
-                }
-            }
-        }
         // Save all notes on file, after every single note
         private void SaveToSessionNotes(string note)
         {

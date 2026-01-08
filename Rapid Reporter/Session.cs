@@ -36,8 +36,15 @@ namespace Rapid_Reporter
                 var jpgFiles = System.IO.Directory.GetFiles(WorkingDir, "*.jpg");
                 filesToZip.AddRange(pngFiles);
                 filesToZip.AddRange(jpgFiles);
-                // Prepare ZIP file path with timestamp
-                string zipFile = System.IO.Path.Combine(WorkingDir, StartingTime.ToString("yyyyMMdd_HHmmss") + ".zip");
+                // Add text note files (TXT files in WorkingDir)
+                var txtFiles = System.IO.Directory.GetFiles(WorkingDir, "*.txt");
+                filesToZip.AddRange(txtFiles);
+                // Prepare ZIP file path to match the session folder name and include scenario name
+                string baseFolderName = string.Format("{0} - {1}", StartingTime.ToString("yyyyMMdd_HHmmss"), ScenarioId);
+                string folderName = (new string(Path.GetInvalidFileNameChars()) + new string(Path.GetInvalidPathChars())).Aggregate(
+                    baseFolderName,
+                    (current, c) => current.Replace(c.ToString(CultureInfo.InvariantCulture), ""));
+                string zipFile = System.IO.Path.Combine(Directory.GetCurrentDirectory(), folderName + ".zip");
                 // Build command line for 7-Zip
                 string args = "a \"" + zipFile + "\" " + string.Join(" ", filesToZip.ConvertAll(f => "\"" + f + "\""));
                 var process = new System.Diagnostics.Process();

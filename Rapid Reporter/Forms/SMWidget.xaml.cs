@@ -433,7 +433,7 @@ namespace Rapid_Reporter.Forms
             switch (_currentStage)
             {
                 case Session.SessionStartingStage.Tester:
-                    NoteType.Text = "Reporter:";
+                    NoteType.Text = "Tester:";
                     prevType.Text = "";
                     nextType.Text = "";
                     _prevNoteType = 1;

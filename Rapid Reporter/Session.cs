@@ -85,7 +85,7 @@ namespace Rapid_Reporter
             // Now create the folder with the proper name including ScenarioId
             CreateWorkingDir(WorkingDir);
             SaveToSessionNotes(ColumnHeaders + "\n"); // Headers of the notes table
-                                                      //UpdateNotes("Reporter Tool Version", System.Windows.Forms.Application.ProductVersion);
+                                                      //UpdateNotes("Tester Tool Version", System.Windows.Forms.Application.ProductVersion);
             UpdateNotes("Tester", Tester);
             UpdateNotes("Scenario ID", ScenarioId);
             UpdateNotes("Session Charter", Charter);

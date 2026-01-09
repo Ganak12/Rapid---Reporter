@@ -86,7 +86,7 @@ namespace Rapid_Reporter
             CreateWorkingDir(WorkingDir);
             SaveToSessionNotes(ColumnHeaders + "\n"); // Headers of the notes table
                                                       //UpdateNotes("Reporter Tool Version", System.Windows.Forms.Application.ProductVersion);
-            UpdateNotes("Session Reporter", Tester);
+            UpdateNotes("Tester", Tester);
             UpdateNotes("Scenario ID", ScenarioId);
             UpdateNotes("Session Charter", Charter);
             UpdateNotes("Environment", Environment);
@@ -354,7 +354,7 @@ namespace Rapid_Reporter
                             }
                         }
 
-                        if (thisLine[1] == "Type" || thisLine[1] == "Session Reporter" ||
+                        if (thisLine[1] == "Type" || thisLine[1] == "Tester" ||
                             (thisLine[1] == "Scenario ID" || thisLine[1] == "Session Charter") ||
                             (thisLine[1] == "Environment" || thisLine[1] == "Versions" || thisLine[1] == "Summary"))
                         {
@@ -400,7 +400,7 @@ namespace Rapid_Reporter
                         var note = thisLine[2].Replace("\"", "");
                         switch (thisLine[1])
                         {
-                            case @"Session Reporter":
+                            case @"Tester":
                                 Tester = note;
                                 StartingTime = DateTime.Parse(thisLine[0]);
                                 break;

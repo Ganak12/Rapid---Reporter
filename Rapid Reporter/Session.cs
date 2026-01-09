@@ -107,7 +107,7 @@ namespace Rapid_Reporter
         public string Environment = "";      // Configured in runtime.
         public string Versions = "";      // Configured in runtime.
                                           // The types of comments. This can be overriden from command line, so every person can use his own terminology or language
-        public string[] NoteTypes = { "Setup", "Test", "Success", "Bug/Issue", "Note", "Follow Up", "Summary" };
+        public string[] NoteTypes = { "Setup", "Test", "Success", "Bug/Issue", "Note", "Opportunity", "Summary" };
 
         // Session files:
         public string WorkingDir;  // Directory to write the session to

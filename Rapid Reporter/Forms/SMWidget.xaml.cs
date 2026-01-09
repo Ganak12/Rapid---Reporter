@@ -439,6 +439,8 @@ namespace Rapid_Reporter.Forms
                     _prevNoteType = 1;
                     _nextNoteType = _currentSession.NoteTypes.Length - 1;
                     NoteType.FontSize = 23;
+                    // Set default tester name from session
+                    NoteContent.Text = _currentSession.Tester;
                     Logger.Record("\t[StateMove]: Session Stage moving -> Tester", "SMWidget", "info");
                     break;
                 case Session.SessionStartingStage.Charter:
@@ -931,9 +933,13 @@ namespace Rapid_Reporter.Forms
         private void ResumeSession_Click(object sender, RoutedEventArgs e)
         {
             ResetSession();
+            // Clear the default tester name when resuming
+            _currentSession.Tester = "";
             if (!_currentSession.ResumeSession()) return;
             StateMove(Session.SessionStartingStage.Notes, true);
             _currentSession.UpdateNotes("Note", "Resuming Session...");
+            // Clear the note content field so it doesn't show the default user name
+            NoteContent.Text = "";
             NoteContent.Focus();
         }
 

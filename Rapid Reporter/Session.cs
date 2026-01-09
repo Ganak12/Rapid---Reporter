@@ -134,6 +134,41 @@ namespace Rapid_Reporter
             // Set a temporary WorkingDir to prevent null reference exceptions
             // Real folder creation will happen in StartSession() when ScenarioId is available
             WorkingDir = Directory.GetCurrentDirectory() + @"\";
+            
+            // Default Tester name to Windows user's full name
+            Tester = GetWindowsUserFullName();
+        }
+        
+        private static string GetWindowsUserFullName()
+        {
+            try
+            {
+                // Try to get the display name from Active Directory
+                using (var searcher = new System.Management.ManagementObjectSearcher(
+                    string.Format("SELECT FullName FROM Win32_UserAccount WHERE Name = '{0}' AND Domain = '{1}'",
+                    System.Environment.UserName,
+                    System.Environment.UserDomainName)))
+                {
+                    foreach (var user in searcher.Get())
+                    {
+                        var fullName = user["FullName"]?.ToString();
+                        if (!string.IsNullOrWhiteSpace(fullName))
+                        {
+                            Logger.Record($"[GetWindowsUserFullName]: Retrieved full name: {fullName}", "Session", "info");
+                            return fullName;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Record($"[GetWindowsUserFullName]: Failed to retrieve full name: {ex.Message}", "Session", "warning");
+            }
+            
+            // Fallback to username if full name is not available
+            var userName = System.Environment.UserName;
+            Logger.Record($"[GetWindowsUserFullName]: Using username as fallback: {userName}", "Session", "info");
+            return userName;
         }
         private void CreateWorkingDir(string path)
         {
